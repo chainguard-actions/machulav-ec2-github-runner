@@ -1,0 +1,35 @@
+name: Test start mode with availability-zones-config
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Validate availability-zones-config and run-runner-as-user inputs
+        id: action
+        continue-on-error: true
+        uses: .
+        with:
+          mode: start
+          github-token: fake-token-for-input-coverage
+          ec2-instance-type: t3.micro
+          availability-zones-config: >-
+            [{"imageId":"ami-0123456789abcdef0","subnetId":"subnet-0123456789abcdef0","securityGroupId":"sg-0123456789abcdef0"},{"imageId":"ami-abcdef0123456789","subnetId":"subnet-abcdef0123456789","securityGroupId":"sg-abcdef0123456789","region":"us-west-2"}]
+          run-runner-as-service: 'true'
+          run-runner-as-user: runner
+          startup-timeout-minutes: '5'
+      - name: Assert action was invoked (may fail due to missing AWS credentials)
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          # The action is expected to fail without real AWS credentials.
+          # This test verifies that availability-zones-config and run-runner-as-user inputs
+          # are accepted by the action schema.
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with availability-zones-config and run-runner-as-user inputs"

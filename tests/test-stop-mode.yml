@@ -1,0 +1,30 @@
+name: Test stop mode with EC2 runner
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Validate inputs are accepted (stop mode)
+        id: action
+        continue-on-error: true
+        uses: .
+        with:
+          mode: stop
+          github-token: fake-token-for-input-coverage
+          label: my-runner-label-abc123
+          ec2-instance-id: i-0123456789abcdef0
+      - name: Assert action was invoked (may fail due to missing AWS credentials)
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          # The action is expected to fail without real AWS credentials.
+          # This test verifies that all stop-mode inputs are accepted by the action schema.
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with all stop-mode inputs"

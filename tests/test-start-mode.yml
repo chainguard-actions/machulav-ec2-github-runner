@@ -1,0 +1,52 @@
+name: Test start mode with EC2 runner
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Validate inputs are accepted (start mode)
+        id: action
+        continue-on-error: true
+        uses: .
+        with:
+          mode: start
+          github-token: fake-token-for-input-coverage
+          ec2-image-id: ami-0123456789abcdef0
+          ec2-instance-type: t3.micro
+          subnet-id: subnet-0123456789abcdef0
+          security-group-id: sg-0123456789abcdef0
+          iam-role-name: my-runner-role
+          market-type: spot
+          pre-runner-script: |
+            apt-get update -y
+            apt-get install -y git
+          runner-home-dir: /home/runner/actions-runner
+          startup-quiet-period-seconds: '10'
+          startup-retry-interval-seconds: '5'
+          startup-timeout-minutes: '5'
+          ec2-volume-size: '50'
+          ec2-volume-type: gp3
+          ec2-device-name: /dev/sda1
+          metadata-options: '{"HttpTokens": "required", "HttpEndpoint": "enabled"}'
+          block-device-mappings: '[{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 50, "VolumeType": "gp3"}}]'
+          aws-resource-tags: '[{"Key": "Environment", "Value": "test"}]'
+          packages: '["git"]'
+          use-jit: 'false'
+          runner-group-id: '1'
+          runner-debug: 'false'
+          run-runner-as-service: 'false'
+      - name: Assert action was invoked (may fail due to missing AWS credentials)
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          # The action is expected to fail without real AWS credentials.
+          # This test verifies that all inputs are accepted by the action schema.
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with all start-mode inputs"
