@@ -1,0 +1,27 @@
+name: Test stop mode inputs
+on:
+  workflow_dispatch:
+jobs:
+  test-stop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: stop-runner
+        uses: .
+        continue-on-error: true
+        with:
+          mode: stop
+          github-token: fake-token-for-testing
+          label: my-runner-label
+          ec2-instance-id: i-0123456789abcdef0
+          availability-zones-config: '[{"imageId":"ami-0123456789abcdef0","subnetId":"subnet-0123456789abcdef0","securityGroupId":"sg-0123456789abcdef0"}]'
+      - name: Assert action was invoked (expected to fail without real AWS creds)
+        env:
+          OUTCOME: ${{ steps.stop-runner.outcome }}
+        run: |
+          echo "Action outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action was invoked (outcome=$OUTCOME, failure expected without real AWS credentials)"

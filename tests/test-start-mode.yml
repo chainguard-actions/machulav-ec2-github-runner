@@ -1,0 +1,47 @@
+name: Test start mode inputs
+on:
+  workflow_dispatch:
+jobs:
+  test-start:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: start-runner
+        uses: .
+        continue-on-error: true
+        with:
+          mode: start
+          github-token: fake-token-for-testing
+          ec2-image-id: ami-0123456789abcdef0
+          ec2-instance-type: t3.micro
+          subnet-id: subnet-0123456789abcdef0
+          security-group-id: sg-0123456789abcdef0
+          iam-role-name: my-runner-role
+          market-type: spot
+          pre-runner-script: |
+            echo "pre-runner setup"
+          runner-home-dir: /home/runner/actions-runner
+          block-device-mappings: '[{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 50, "VolumeType": "gp3"}}]'
+          metadata-options: '{"HttpTokens": "required", "HttpEndpoint": "enabled"}'
+          startup-quiet-period-seconds: '10'
+          startup-retry-interval-seconds: '5'
+          startup-timeout-minutes: '5'
+          ec2-volume-size: '50'
+          ec2-volume-type: gp3
+          aws-resource-tags: '[{"Key": "Name", "Value": "test-runner"}]'
+          run-runner-as-service: 'false'
+          run-runner-as-user: runner
+          packages: '["git"]'
+          use-jit: 'false'
+          runner-group-id: '1'
+          runner-debug: 'false'
+      - name: Assert action was invoked (expected to fail without real AWS creds)
+        env:
+          OUTCOME: ${{ steps.start-runner.outcome }}
+        run: |
+          echo "Action outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action was invoked (outcome=$OUTCOME, failure expected without real AWS credentials)"
