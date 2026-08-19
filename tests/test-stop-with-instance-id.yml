@@ -1,0 +1,26 @@
+name: Test stop mode with ec2-instance-id input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          mode: stop
+          github-token: ${{ github.token }}
+          label: test-runner-label
+          ec2-instance-id: i-0123456789abcdef0
+      - name: Assert action ran (may fail due to missing AWS creds)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran with ec2-instance-id input"
