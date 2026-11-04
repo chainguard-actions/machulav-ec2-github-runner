@@ -4,8 +4,13 @@
   "version": "v2.6.0",
   "commit_sha": "ba8ae6b519e4cde083bc7fc3372577b53acc7572",
   "url": "https://github.com/machulav/ec2-github-runner",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/machulav/ec2-github-runner/v2.6.0/sha256-3df8fe82fa7a41ad14bef541bd6a363373d1e457a544d5fb165e07fa4ae0b719.tar.gz",
+    "sha256": "3df8fe82fa7a41ad14bef541bd6a363373d1e457a544d5fb165e07fa4ae0b719",
+    "size_bytes": 765882
+  }
 }
